@@ -5,6 +5,13 @@
 
 const TOKEN_KEY = "patrn-jwt";
 
+function decodeBase64Url(value: string): string {
+  const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
+  const padded =
+    normalized + "=".repeat((4 - (normalized.length % 4)) % 4);
+  return atob(padded);
+}
+
 /** Store JWT token */
 export function setToken(token: string): void {
   if (typeof window !== "undefined") {
@@ -34,7 +41,10 @@ export function isAuthenticated(): boolean {
 
   // Basic expiry check by decoding JWT payload
   try {
-    const payload = JSON.parse(atob(token.split(".")[1]));
+    const parts = token.split(".");
+    if (parts.length < 2) return false;
+
+    const payload = JSON.parse(decodeBase64Url(parts[1]));
     const expiry = payload.exp * 1000; // JWT exp is in seconds
     return Date.now() < expiry;
   } catch {
