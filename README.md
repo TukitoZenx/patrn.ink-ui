@@ -34,6 +34,17 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 **Note:** OAuth client secrets/IDs are only needed by your backend API, not by this UI.
 
+## Production
+
+Live domains:
+
+- App: `https://patrn.ink`
+- API: `https://api.patrn.ink`
+
+Those URLs are passed as Docker **build arguments**. They are not read from the container environment at runtime. Local Dockerfile defaults stay on localhost.
+
+See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). The EC2 / Nginx / SSM stack is documented in the API repo at `patrn.ink-api/deploy/DEPLOYMENT.md`.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
@@ -41,10 +52,6 @@ To learn more about Next.js, take a look at the following resources:
 - [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
 - [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome.
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Production hosting is Docker on EC2 behind Nginx. Vercel is not used.
