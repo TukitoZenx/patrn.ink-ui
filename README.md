@@ -1,59 +1,79 @@
-Dashboard for [patrn.ink](https://patrn.ink): a Next.js UI that talks to the Go API in the sibling `patrn.ink-api` repo.
+# 🔗 patrn.ink — dashboard
 
-**Start here:** [Getting Started](#getting-started) · [AGENTS.md](AGENTS.md) · [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
+Next.js dashboard for [patrn.ink](https://patrn.ink): sign in, manage short links, analytics, QR codes, and API tokens. The Go API lives in the sibling `patrn.ink-api` repo.
 
-## Getting Started
+**Start here:** [Quick Start](#-quick-start) · [AGENTS.md](AGENTS.md) · [docs/now.md](docs/now.md) · [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) (this repo) · `patrn.ink-api/deploy/DEPLOYMENT.md` (EC2 / Nginx / SSM)
 
-First, run the development server:
+## ✨ Features
+
+- Landing page with Google and GitHub login (OAuth is handled by the API)
+- Dashboard: quick create, link list, detail, analytics charts, API tokens, settings
+- Password / age gates for public links (`app/[code]` is a UI fallback; production redirects are on `api.patrn.ink/{code}`)
+- Theme toggle, JWT in `localStorage`, typed API client with retries
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Node 20+
+- The API running locally (`patrn.ink-api`: `docker compose up --build` or `go run ./cmd/api`)
+
+### Configure and run
 
 ```bash
+cp .env.example .env.local
+npm ci
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000). OAuth client IDs and secrets stay on the API — this UI never needs them.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🔧 Environment
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Variable | Local default | Notes |
+| --- | --- | --- |
+| `NEXT_PUBLIC_API_URL` | `http://localhost:8080` | API origin (login + `/api/*`) |
+| `NEXT_PUBLIC_APP_URL` | `http://localhost:3000` | Metadata / canonical host |
 
-## Environment Variables
+These are `NEXT_PUBLIC_*` values: they are **baked into the JS bundle at `next build`**. Changing container env at runtime does not change them. Local Dockerfile defaults stay on localhost. Production CD passes:
 
-Create a `.env.local` file in the project root with:
-
+```text
+NEXT_PUBLIC_API_URL=https://api.patrn.ink
+NEXT_PUBLIC_APP_URL=https://patrn.ink
 ```
-NEXT_PUBLIC_API_URL=http://localhost:8080
-NEXT_PUBLIC_APP_URL=http://localhost:3000
+
+Authoritative list: [`.env.example`](.env.example). Production image notes: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
+
+## 📚 Routes
+
+| Path | Purpose |
+| --- | --- |
+| `/` | Landing + OAuth |
+| `/auth/callback` | Stores `?token=` JWT, goes to the dashboard |
+| `/dashboard` | Overview and quick create |
+| `/dashboard/links`, `/dashboard/links/[code]` | Library and detail |
+| `/dashboard/analytics` | Charts and export |
+| `/dashboard/tokens` | Scoped API tokens |
+| `/dashboard/settings` | Profile, theme, sign out |
+| `/[code]` | Client-side gate (not the production short-link host) |
+
+## 🧪 Checks
+
+```bash
+npm run lint
+npm run build    # CI uses localhost NEXT_PUBLIC_* values
 ```
 
-- `NEXT_PUBLIC_API_URL`: The base URL for your backend/API (which also handles OAuth with Google/GitHub).
-- `NEXT_PUBLIC_APP_URL`: The public URL where your frontend will be hosted (used for metadata and links).
+There is no unit-test runner in this repo.
 
-**Note:** OAuth client secrets/IDs are only needed by your backend API, not by this UI.
+## 🏭 Production
 
-## Production
+Live: `https://patrn.ink` (this UI) and `https://api.patrn.ink` (API, OAuth, short links). Hosted as a Docker standalone image on the same EC2 box as the API, behind Nginx. This repo does **not** own Compose/Nginx/SSM — that is `patrn.ink-api/deploy/`.
 
-Live domains:
+## 🛠️ Stack
 
-- App: `https://patrn.ink`
-- API: `https://api.patrn.ink`
+Next.js 16 · React 19 · TypeScript · Tailwind 4 · Recharts · Docker (`output: "standalone"`)
 
-Those URLs are passed as Docker **build arguments**. They are not read from the container environment at runtime. Local Dockerfile defaults stay on localhost.
+## 🤝 Contributing · 📝 License
 
-See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). The EC2 / Nginx / SSM stack is documented in the API repo at `patrn.ink-api/deploy/DEPLOYMENT.md`.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome.
-
-Production hosting is Docker on EC2 behind Nginx. Vercel is not used.
+Portfolio project — suggestions welcome. MIT License.
