@@ -4,6 +4,8 @@ The live host layout, Nginx, TLS, IAM, SSM, and Compose stack live in the API re
 
 `patrn.ink-api/deploy/DEPLOYMENT.md`
 
+Agents: see [AGENTS.md](../AGENTS.md).
+
 This file only covers what this repo must get right.
 
 ## Domain contract

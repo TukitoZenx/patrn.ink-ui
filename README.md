@@ -1,4 +1,6 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+Dashboard for [patrn.ink](https://patrn.ink): a Next.js UI that talks to the Go API in the sibling `patrn.ink-api` repo.
+
+**Start here:** [Getting Started](#getting-started) · [AGENTS.md](AGENTS.md) · [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
 
 ## Getting Started
 
