@@ -1,0 +1,72 @@
+{
+    "version": 1,
+    "name": "patrn.ink",
+    "tagline": "Operator dashboard for shortening, gating, rotating, and analyzing links",
+    "description": "Next.js dashboard for patrn.ink. Users sign in with Google or GitHub, then create and manage short links, inspect destination health, export analytics, issue scoped API tokens, and download QR codes. This repo is the browser UI only: it talks to a sibling Go API over HTTPS, stores a JWT in localStorage, and has no database of its own. Production short-link redirects live on api.patrn.ink, not in this app.",
+    "year": "2026",
+    "tags": [
+        "URL shortening",
+        "link management",
+        "analytics",
+        "QR codes",
+        "OAuth"
+    ],
+    "skills": [
+        "TypeScript",
+        "React",
+        "Next.js",
+        "Tailwind CSS",
+        "Node.js",
+        "Docker",
+        "GitHub Actions",
+        "AWS",
+        "Amazon ECR",
+        "Recharts"
+    ],
+    "highlights": [
+        "App Router dashboard at /dashboard, /dashboard/links, /dashboard/analytics, /dashboard/tokens, and /dashboard/settings, with a landing page that starts Google and GitHub OAuth on the API.",
+        "Typed client in lib/api.ts covers shorten, paginated search, update/archive/delete, destination health checks, round-robin rotation targets, bulk import/export, analytics export, and API tokens.",
+        "Link create/edit UI implements custom codes, tags, scheduling, expiry, password gates, age gates (13+/18+/21+), CSV import, and QR download from the API origin.",
+        "Analytics page charts click timeline, devices, browsers, and top referrers with CSV/JSON export; link detail shows a QR image and a click timeline.",
+        "Production path: Next.js standalone Docker image, CI lint+build, CD on v* tags via OIDC to Amazon ECR then SSM deploy.sh on the EC2 host owned by patrn.ink-api.",
+        "Live at https://patrn.ink with public env baked at image build as https://api.patrn.ink and https://patrn.ink."
+    ],
+    "liveUrl": "https://patrn.ink",
+    "story": {
+        "why": "A URL shortener that is only a 302 is not enough to operate campaigns. This dashboard exists so a person can launch, protect, rotate, inspect, and automate short links from one UI while the Go API owns OAuth, redirects, and data.",
+        "problem": "Link operators need scheduling, password and age gates, destination rotation with health, QR, bulk import/export, click analytics, and machine tokens without stitching extra tools. The UI must never hold OAuth secrets or become the production redirect host.",
+        "challenges": [
+            "NEXT_PUBLIC_API_URL and NEXT_PUBLIC_APP_URL are inlined at next build, so a production image built without Docker build-args would call localhost:8080 (docs/decisions/0001-bake-public-env-at-build.md, Dockerfile, .github/workflows/cd.yml).",
+            "Session is a JWT in localStorage with a client-side expiry decode; there is no httpOnly cookie or Next.js auth route (lib/auth.ts, app/auth/callback/page.tsx).",
+            "Production redirects are https://api.patrn.ink/{code}; app/[code] is only a password/age gate fallback and must not be treated as the short-link host (app/[code]/page.tsx, docs/now.md).",
+            "No datastore in this repo. All privileged reads and writes go to the Go API with Authorization: Bearer; OAuth client IDs and secrets stay on the API (.env.example, lib/api.ts).",
+            "Age verification can be set on create but is read-only in edit because the update contract does not accept that field; passwords can be replaced but not cleared (app/dashboard/links/[code]/page.tsx).",
+            "Dashboard activity cards summarize only the latest 8 links; the analytics picker loads at most 100 links (app/dashboard/page.tsx, app/dashboard/analytics/page.tsx)."
+        ],
+        "designDecisions": [
+            "Keep this repo a thin Next.js 16 App Router client with output standalone; do not add Next API routes, a deploy/ tree, or production Compose (next.config.ts, AGENTS.md, Dockerfile).",
+            "Bake production public URLs as Docker build-args in CD and leave local Dockerfile/.env.example defaults on localhost (docs/decisions/0001-bake-public-env-at-build.md, .github/workflows/cd.yml).",
+            "OAuth is a redirect to the API; the UI only stores ?token= and attaches it on subsequent fetches (lib/auth.ts getLoginUrl, app/auth/callback/page.tsx).",
+            "apiFetch retries 5xx/network with exponential backoff and a 15s timeout, and never retries 4xx; blob downloads send the same Bearer header so export works without leaking the token in a URL (lib/api.ts).",
+            "Copied short URLs and QR images use the API origin, not this app (app/dashboard/links/page.tsx, getQRCodeUrl).",
+            "Theme is data-theme plus a blocking script in app/layout.tsx so light/dark is applied before paint; Google and GitHub avatars are allowlisted in next.config.ts remotePatterns.",
+            "CI is npm ci, eslint, and next build on Node 20 with localhost public env. There is no unit-test runner (package.json, .github/workflows/ci.yml)."
+        ]
+    },
+    "future": {
+        "next": "Stay on baked production NEXT_PUBLIC_* values and do not add a host layout here. The honest product gap already called out in the UI is the update contract: age gates cannot be edited and passwords cannot be cleared.",
+        "roadmap": [
+            "Runtime public config if one UI image must target staging and production without rebuild (docs/decisions/0001-bake-public-env-at-build.md Revisit if).",
+            "Tag-filter UI for the tags query already typed on GET /api/links (lib/api.ts LinksQuery vs app/dashboard/links/page.tsx search-only controls).",
+            "Charts for clicks_by_hour and country breakdown already present on AnalyticsSummary but unused beyond a country count (lib/api.ts, app/dashboard/analytics/page.tsx)."
+        ],
+        "upcomingFeatures": [
+            "Age-verification edit if the API update endpoint starts accepting that field (noted in the link edit modal).",
+            "Runtime config endpoint so NEXT_PUBLIC_* is not the only way to point the bundle at an API (ADR 0001)."
+        ],
+        "ideas": [
+            "A unit-test runner; checks today are lint plus production build only.",
+            "Honor gate_sequence from PublicGateResponse instead of inferring age-then-password from successive JSON fields (typed in lib/api.ts, unused by app/[code]/page.tsx)."
+        ]
+    }
+}
